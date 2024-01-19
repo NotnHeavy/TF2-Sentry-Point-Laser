@@ -31,12 +31,14 @@ enum struct sentry_t
 {
     int m_iStart;
     int m_iEnd;
+    int m_iTarget;
 }
 static sentry_t g_SentryData[MAXENTITIES + 1];
 
 static int g_iBeamModel;
 
 static any CObjectSentrygun_m_vecCurAngles;
+static any CObjectSentrygun_m_vecGoalAngles;
 static any CObjectSentrygun_m_iAttachments;
 static any CObjectSentrygun_m_iLastMuzzleAttachmentFired;
 
@@ -65,6 +67,7 @@ public void OnPluginStart()
 
     // Find offsets.
     CObjectSentrygun_m_vecCurAngles = FindSendPropInfo("CObjectSentrygun", "m_iAmmoShells") - 28;
+    CObjectSentrygun_m_vecGoalAngles = FindSendPropInfo("CObjectSentrygun", "m_iAmmoShells") - 16;
     CObjectSentrygun_m_iAttachments = FindSendPropInfo("CObjectSentrygun", "m_nShieldLevel") + 12;
     CObjectSentrygun_m_iLastMuzzleAttachmentFired = FindSendPropInfo("CObjectSentrygun", "m_hAutoAimTarget") + 32;
 
@@ -95,6 +98,7 @@ public void OnPluginEnd()
         {
             RemoveNotWorld(g_SentryData[i].m_iStart);
             RemoveNotWorld(g_SentryData[i].m_iEnd);
+            RemoveNotWorld(g_SentryData[i].m_iTarget);
         }
     }   
 }
@@ -146,6 +150,7 @@ public void OnGameFrame()
                 {
                     RemoveNotWorld(g_SentryData[i].m_iStart);
                     RemoveNotWorld(g_SentryData[i].m_iEnd);
+                    RemoveNotWorld(g_SentryData[i].m_iTarget);
 
                     int target = CreateEntityByName("info_target");
                     SetEntityModel(target, BEAM_MODEL);
@@ -158,11 +163,18 @@ public void OnGameFrame()
                     SetEntityRenderMode(target, RENDER_NONE);
                     DispatchSpawn(target);
                     g_SentryData[i].m_iEnd = EntIndexToEntRef(target);
+
+                    target = CreateEntityByName("info_target");
+                    SetEntityModel(target, BEAM_MODEL);
+                    SetEntityRenderMode(target, RENDER_NONE);
+                    DispatchSpawn(target);
+                    g_SentryData[i].m_iTarget = EntIndexToEntRef(target);
                 }
                 
                 // Get targets.
                 int start = EntRefToEntIndex(g_SentryData[i].m_iStart);
                 int end = EntRefToEntIndex(g_SentryData[i].m_iEnd);
+                int target = EntRefToEntIndex(g_SentryData[i].m_iTarget);
 
                 // Get muzzle origin.
                 float origin[3];
@@ -180,7 +192,6 @@ public void OnGameFrame()
                 GetEntDataVector(i, CObjectSentrygun_m_vecCurAngles, angles);
                 TR_TraceRayFilter(origin, angles, MASK_SHOT, RayType_Infinite, Filter_IgnoreSentry, i);
                 TR_GetEndPosition(buffer);
-                //AddVectors(buffer, {0.00, 0.00, 50.00}, buffer);
                 TeleportEntity(end, buffer);
 
                 // Create the beam point and send it to all clients.
@@ -207,10 +218,16 @@ public void OnGameFrame()
                 int enemy = GetEntPropEnt(i, Prop_Send, "m_hEnemy");
                 if (IsValidEntity(enemy))
                 {
+                    // Get an origin where the sentry is desiring to shoot at.
+                    GetEntDataVector(i, CObjectSentrygun_m_vecGoalAngles, angles);
+                    TR_TraceRayFilter(origin, angles, MASK_SHOT, RayType_Infinite, Filter_IgnoreSentry, i);
+                    TR_GetEndPosition(buffer);
+                    TeleportEntity(target, buffer);
+
                     // Create the beam point and send it to all clients.
                     TE_Start("BeamEntPoint");
                     TE_WriteEncodedEnt("m_nStartEntity", start);
-                    TE_WriteEncodedEnt("m_nEndEntity", enemy);
+                    TE_WriteEncodedEnt("m_nEndEntity", target);
                     TE_WriteNum("m_nModelIndex", g_iBeamModel);
                     TE_WriteNum("m_nHaloIndex", 0);
                     TE_WriteNum("m_nStartFrame", 0);
@@ -233,6 +250,7 @@ public void OnGameFrame()
         {
             RemoveNotWorld(g_SentryData[i].m_iStart);
             RemoveNotWorld(g_SentryData[i].m_iEnd);
+            RemoveNotWorld(g_SentryData[i].m_iTarget);
         }
     }
 }
