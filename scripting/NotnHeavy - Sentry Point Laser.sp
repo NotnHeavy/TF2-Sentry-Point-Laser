@@ -43,6 +43,7 @@ static any CObjectSentrygun_m_iAttachments;
 static any CObjectSentrygun_m_iLastMuzzleAttachmentFired;
 
 static Handle SDKCall_CBaseAnimating_GetAttachment;
+static Handle SDKCall_CObjectSentrygun_GetEnemyAimPosition;
 
 //////////////////////////////////////////////////////////////////////////////
 // PLUGIN INFO                                                              //
@@ -53,7 +54,7 @@ public Plugin myinfo =
     name = PLUGIN_NAME,
     author = "NotnHeavy",
     description = "A random plugin that spawns a beam between a sentry and its target point.",
-    version = "1.0",
+    version = "1.1",
     url = "none"
 };
 
@@ -84,6 +85,12 @@ public void OnPluginStart()
     PrepSDKCall_AddParameter(SDKType_QAngle, SDKPass_ByRef, .encflags = VENCODE_FLAG_COPYBACK); // QAngle& absAngles;
     PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);                                     // bool
     SDKCall_CBaseAnimating_GetAttachment = EndPrepSDKCall();
+
+    StartPrepSDKCall(SDKCall_Entity);
+    PrepSDKCall_SetFromConf(config, SDKConf_Signature, "CObjectSentrygun::GetEnemyAimPosition()");
+    PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);                             // CBaseEntity* pEnemy;
+    PrepSDKCall_SetReturnInfo(SDKType_Vector, SDKPass_ByValue);                                 // Vector
+    SDKCall_CObjectSentrygun_GetEnemyAimPosition = EndPrepSDKCall();
 
     delete config;
     PrintToServer("--------------------------------------------------------\n\"%s\" has loaded.\n--------------------------------------------------------", PLUGIN_NAME);
@@ -219,9 +226,7 @@ public void OnGameFrame()
                 if (IsValidEntity(enemy))
                 {
                     // Get an origin where the sentry is desiring to shoot at.
-                    GetEntDataVector(i, CObjectSentrygun_m_vecGoalAngles, angles);
-                    TR_TraceRayFilter(origin, angles, MASK_SHOT, RayType_Infinite, Filter_IgnoreSentry, i);
-                    TR_GetEndPosition(buffer);
+                    SDKCall(SDKCall_CObjectSentrygun_GetEnemyAimPosition, i, buffer, enemy);
                     TeleportEntity(target, buffer);
 
                     // Create the beam point and send it to all clients.

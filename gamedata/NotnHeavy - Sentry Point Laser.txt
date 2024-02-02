@@ -12,6 +12,14 @@
                 "windows"   "\x55\x8B\xEC\x8B\x01\x8D\x55\xD0\x83\xEC\x30\x8B\x80\x5C\x03\x00\x00\x53\x52\xFF\x75\x08\xFF\xD0\xFF\x75\x10"
                 "linux"     "@_ZN14CBaseAnimating13GetAttachmentEiR6VectorR6QAngle"
             }
+
+            // xref offset aBipSpine2 ; "bip_spine_2"
+            "CObjectSentrygun::GetEnemyAimPosition()"
+            {
+                "library"   "server"
+                "windows"   "\x55\x8B\xEC\x83\xEC\x0C\x56\x57\x8B\x7D\x0C\x8B\xCF"
+                "linux"     "@_ZNK16CObjectSentrygun19GetEnemyAimPositionEP11CBaseEntity"
+            }
         }
     }
 }
