@@ -38,7 +38,6 @@ static sentry_t g_SentryData[MAXENTITIES + 1];
 static int g_iBeamModel;
 
 static any CObjectSentrygun_m_vecCurAngles;
-static any CObjectSentrygun_m_vecGoalAngles;
 static any CObjectSentrygun_m_iAttachments;
 static any CObjectSentrygun_m_iLastMuzzleAttachmentFired;
 
@@ -54,7 +53,7 @@ public Plugin myinfo =
     name = PLUGIN_NAME,
     author = "NotnHeavy",
     description = "A random plugin that spawns a beam between a sentry and its target point.",
-    version = "1.1",
+    version = "1.2",
     url = "none"
 };
 
@@ -68,7 +67,6 @@ public void OnPluginStart()
 
     // Find offsets.
     CObjectSentrygun_m_vecCurAngles = FindSendPropInfo("CObjectSentrygun", "m_iAmmoShells") - 28;
-    CObjectSentrygun_m_vecGoalAngles = FindSendPropInfo("CObjectSentrygun", "m_iAmmoShells") - 16;
     CObjectSentrygun_m_iAttachments = FindSendPropInfo("CObjectSentrygun", "m_nShieldLevel") + 12;
     CObjectSentrygun_m_iLastMuzzleAttachmentFired = FindSendPropInfo("CObjectSentrygun", "m_hAutoAimTarget") + 32;
 
@@ -227,6 +225,12 @@ public void OnGameFrame()
                 {
                     // Get an origin where the sentry is desiring to shoot at.
                     SDKCall(SDKCall_CObjectSentrygun_GetEnemyAimPosition, i, buffer, enemy);
+                    TR_TraceRayFilter(origin, buffer, MASK_SOLID, RayType_EndPoint, Filter_IgnoreSentry, i);
+                    if (!IsValidEntity(TR_GetEntityIndex()) || TR_GetEntityIndex() == 0)
+                    {
+                        GetClientEyePosition(enemy, buffer);
+                        AddVectors(buffer, { 0.00, 0.00, -5.00 }, buffer);
+                    }
                     TeleportEntity(target, buffer);
 
                     // Create the beam point and send it to all clients.
