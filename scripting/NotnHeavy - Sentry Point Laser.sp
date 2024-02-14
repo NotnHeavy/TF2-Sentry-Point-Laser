@@ -53,7 +53,7 @@ public Plugin myinfo =
     name = PLUGIN_NAME,
     author = "NotnHeavy",
     description = "A random plugin that spawns a beam between a sentry and its target point.",
-    version = "1.2.1",
+    version = "1.2",
     url = "none"
 };
 
@@ -221,12 +221,12 @@ public void OnGameFrame()
 
                 // Check if there is an enemy target to hit.
                 int enemy = GetEntPropEnt(i, Prop_Send, "m_hEnemy");
-                if (IsValidEntity(enemy) && 1 <= enemy <= MaxClients)
+                if (IsValidEntity(enemy))
                 {
                     // Get an origin where the sentry is desiring to shoot at.
                     SDKCall(SDKCall_CObjectSentrygun_GetEnemyAimPosition, i, buffer, enemy);
                     TR_TraceRayFilter(origin, buffer, MASK_SOLID, RayType_EndPoint, Filter_IgnoreSentry, i);
-                    if (!IsValidEntity(TR_GetEntityIndex()) || TR_GetEntityIndex() == 0)
+                    if ((!IsValidEntity(TR_GetEntityIndex()) || TR_GetEntityIndex() == 0) && 1 <= enemy <= MaxClients)
                     {
                         GetClientEyePosition(enemy, buffer);
                         AddVectors(buffer, { 0.00, 0.00, -5.00 }, buffer);
