@@ -53,7 +53,7 @@ public Plugin myinfo =
     name = PLUGIN_NAME,
     author = "NotnHeavy",
     description = "A random plugin that spawns a beam between a sentry and its target point.",
-    version = "1.2",
+    version = "1.2.1",
     url = "none"
 };
 
@@ -221,7 +221,7 @@ public void OnGameFrame()
 
                 // Check if there is an enemy target to hit.
                 int enemy = GetEntPropEnt(i, Prop_Send, "m_hEnemy");
-                if (IsValidEntity(enemy))
+                if (IsValidEntity(enemy) && 1 <= enemy <= MaxClients)
                 {
                     // Get an origin where the sentry is desiring to shoot at.
                     SDKCall(SDKCall_CObjectSentrygun_GetEnemyAimPosition, i, buffer, enemy);
